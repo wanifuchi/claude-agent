@@ -1,7 +1,7 @@
 import { allTools } from "./tools";
 import { platform, homedir } from "os";
 
-export function buildSystemPrompt(workspaceDir: string): string {
+export function buildSystemPrompt(workspaceDir: string, model?: string): string {
   const toolDescriptions = allTools
     .map(
       (t) =>
@@ -49,6 +49,7 @@ ${toolDescriptions}
 - 作業ディレクトリ: ${workspaceDir}
 - プラットフォーム: ${platform()}
 - ホーム: ${homedir()}
-- エンジン: Claude (Anthropic)
+- 使用モデル: ${model || "claude-sonnet-4-20250514"}
+- あなたは「Claude Agent」というブラウザベースのコーディングエージェントです。自分のモデル名を聞かれたら上記の使用モデルを正確に答えてください。
 `;
 }

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const workspaceDir = getWorkspaceDir();
   const provider = getProvider(providerId || "anthropic");
   const model = modelId || "claude-sonnet-4-20250514";
-  const systemPrompt = buildSystemPrompt(workspaceDir);
+  const systemPrompt = buildSystemPrompt(workspaceDir, model);
   const tools = getToolSchemas();
 
   const { mkdir } = await import("fs/promises");
