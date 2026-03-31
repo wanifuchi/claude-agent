@@ -5,6 +5,8 @@ import { FileWriteTool } from "./fileWrite";
 import { FileEditTool } from "./fileEdit";
 import { GrepTool } from "./grep";
 import { GlobTool } from "./globTool";
+import { ImageGenerateTool } from "./imageGenerate";
+import { TextToSpeechTool } from "./textToSpeech";
 
 export const allTools: Tool[] = [
   BashTool,
@@ -13,6 +15,8 @@ export const allTools: Tool[] = [
   FileEditTool,
   GrepTool,
   GlobTool,
+  ImageGenerateTool,
+  TextToSpeechTool,
 ];
 
 export function getToolByName(name: string): Tool | undefined {
