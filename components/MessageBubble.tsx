@@ -19,8 +19,16 @@ export interface Message {
   toolCalls?: ToolCall[];
 }
 
-export default function MessageBubble({ message }: { message: Message }) {
+export default function MessageBubble({
+  message,
+  isLoading,
+}: {
+  message: Message;
+  isLoading?: boolean;
+}) {
   const isUser = message.role === "user";
+  const isActiveAssistant = !isUser && isLoading;
+  const isEmpty = !message.content && (!message.toolCalls || message.toolCalls.length === 0);
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
@@ -29,15 +37,27 @@ export default function MessageBubble({ message }: { message: Message }) {
           isUser
             ? "bg-terminal-accent/15 border-terminal-accent/30"
             : "bg-terminal-surface border-terminal-border"
-        } border rounded-lg px-4 py-3`}
+        } border rounded-lg px-4 py-3 ${
+          isActiveAssistant ? "border-terminal-accent/40" : ""
+        }`}
       >
         {/* Role label */}
         <div
-          className={`text-xs font-bold mb-1 ${
+          className={`text-xs font-bold mb-1 flex items-center gap-2 ${
             isUser ? "text-terminal-accent" : "text-terminal-green"
           }`}
         >
           {isUser ? "あなた" : "エージェント"}
+          {isActiveAssistant && (
+            <span className="inline-flex items-center gap-1 text-terminal-orange font-normal">
+              <span className="thinking-dots">
+                <span className="dot">●</span>
+                <span className="dot">●</span>
+                <span className="dot">●</span>
+              </span>
+              思考中
+            </span>
+          )}
         </div>
 
         {/* Tool calls */}
@@ -58,6 +78,13 @@ export default function MessageBubble({ message }: { message: Message }) {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {message.content}
             </ReactMarkdown>
+          </div>
+        )}
+
+        {/* Empty state with loading animation */}
+        {isEmpty && isActiveAssistant && (
+          <div className="flex items-center gap-2 py-1">
+            <div className="pulse-bar" />
           </div>
         )}
       </div>

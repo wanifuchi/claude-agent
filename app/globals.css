@@ -51,4 +51,32 @@
   .message-content th {
     @apply bg-terminal-surface;
   }
+
+  /* Thinking dots animation */
+  .thinking-dots .dot {
+    @apply inline-block text-[8px] opacity-30;
+    animation: dotPulse 1.4s ease-in-out infinite;
+  }
+  .thinking-dots .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .thinking-dots .dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  /* Pulse bar animation */
+  .pulse-bar {
+    @apply h-1 w-24 rounded-full bg-terminal-accent/30;
+    animation: pulseBar 2s ease-in-out infinite;
+  }
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.2; }
+  40% { opacity: 1; }
+}
+
+@keyframes pulseBar {
+  0%, 100% { opacity: 0.3; width: 60px; }
+  50% { opacity: 0.8; width: 120px; }
 }

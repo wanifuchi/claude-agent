@@ -301,8 +301,12 @@ export default function Home() {
               </p>
             </div>
           )}
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
+          {messages.map((m, i) => (
+            <MessageBubble
+              key={m.id}
+              message={m}
+              isLoading={isLoading && i === messages.length - 1 && m.role === "assistant"}
+            />
           ))}
           <div ref={messagesEndRef} />
         </main>
