@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { ChatSession } from "@/lib/chatHistory";
+import FileTree from "./FileTree";
 
 interface SidebarProps {
   sessions: ChatSession[];
@@ -157,6 +158,9 @@ export default function Sidebar({
           </div>
         )}
       </div>
+
+      {/* File Tree */}
+      <FileTree />
     </div>
   );
 }

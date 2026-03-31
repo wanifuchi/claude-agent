@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import CodeBlock from "./CodeBlock";
 import ToolResultBlock from "./ToolResultBlock";
 
 export interface ToolCall {
@@ -75,7 +76,22 @@ export default function MessageBubble({
         {/* Text content */}
         {message.content && (
           <div className="message-content text-sm leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                code({ className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  const code = String(children).replace(/\n$/, "");
+                  if (match) {
+                    return <CodeBlock language={match[1]}>{code}</CodeBlock>;
+                  }
+                  return <code className={className} {...props}>{children}</code>;
+                },
+                pre({ children }) {
+                  return <>{children}</>;
+                },
+              }}
+            >
               {message.content}
             </ReactMarkdown>
           </div>
