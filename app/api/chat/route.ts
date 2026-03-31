@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
         while (turns < MAX_TURNS) {
           turns++;
 
-          const response = await client.messages.create({
+          const stream = client.messages.stream({
             model: "claude-sonnet-4-20250514",
             max_tokens: 16384,
             system: systemPrompt,
@@ -47,13 +47,18 @@ export async function POST(req: NextRequest) {
             messages: conversationMessages,
           });
 
+          // テキストをリアルタイムでストリーミング送信
+          stream.on("text", (text) => {
+            send("text", { text });
+          });
+
+          const response = await stream.finalMessage();
+
           let hasToolUse = false;
           const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
           for (const block of response.content) {
-            if (block.type === "text") {
-              send("text", { text: block.text });
-            } else if (block.type === "tool_use") {
+            if (block.type === "tool_use") {
               hasToolUse = true;
               send("tool_use", {
                 name: block.name,

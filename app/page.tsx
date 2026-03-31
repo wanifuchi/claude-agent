@@ -156,7 +156,9 @@ export default function Home() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // IME変換中（isComposing）は無視する
+    if (e.nativeEvent.isComposing) return;
+    if (e.key === "Enter" && e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
@@ -205,7 +207,7 @@ export default function Home() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isLoading ? "エージェントが作業中..." : "メッセージを入力...（Enterで送信）"
+              isLoading ? "エージェントが作業中..." : "メッセージを入力...（Shift+Enterで送信）"
             }
             disabled={isLoading}
             rows={1}
