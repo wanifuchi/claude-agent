@@ -38,7 +38,7 @@ export async function runAgent(
 
     try {
       const stream = await client.messages.stream({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6-20250627",
         max_tokens: 16384,
         system: systemPrompt,
         tools: tools as Anthropic.Tool[],
