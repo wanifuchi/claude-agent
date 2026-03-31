@@ -282,9 +282,22 @@ export default function Home() {
           <h1 className="text-lg font-bold text-terminal-text">
             {sessions.find((s) => s.id === activeSessionId)?.title || "Claude Agent"}
           </h1>
-          <span className="text-xs text-terminal-muted">
+          <span className="text-xs text-terminal-muted flex-1">
             ブラウザで動くAIコーディングエージェント
           </span>
+          <button
+            onClick={() => {
+              const a = document.createElement("a");
+              a.href = "/api/download";
+              a.download = "";
+              a.click();
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-terminal-border rounded-lg text-terminal-muted hover:text-terminal-accent hover:border-terminal-accent transition-colors"
+            title="ワークスペースのファイルをZIPでダウンロード"
+          >
+            <span>↓</span>
+            ダウンロード
+          </button>
         </header>
 
         {/* Messages */}
