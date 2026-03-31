@@ -169,7 +169,7 @@ export default function Home() {
         <div className="w-3 h-3 rounded-full bg-terminal-green" />
         <h1 className="text-lg font-bold text-terminal-text">Claude Agent</h1>
         <span className="text-xs text-terminal-muted">
-          browser-based coding agent
+          ブラウザで動くAIコーディングエージェント
         </span>
       </header>
 
@@ -180,7 +180,10 @@ export default function Home() {
             <div className="text-4xl mb-4">⌘</div>
             <p className="text-lg mb-2">Claude Agent</p>
             <p className="text-sm">
-              Ask me to read, write, edit files, run commands, or search code.
+              ファイルの読み書き・編集、コマンド実行、コード検索ができます。
+            </p>
+            <p className="text-xs mt-2">
+              何でも日本語で話しかけてください。
             </p>
           </div>
         )}
@@ -202,7 +205,7 @@ export default function Home() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              isLoading ? "Agent is working..." : "Type a message... (Enter to send)"
+              isLoading ? "エージェントが作業中..." : "メッセージを入力...（Enterで送信）"
             }
             disabled={isLoading}
             rows={1}
@@ -219,7 +222,7 @@ export default function Home() {
             disabled={isLoading || !input.trim()}
             className="px-4 py-2.5 bg-terminal-accent text-terminal-bg font-bold text-sm rounded-lg hover:opacity-90 transition-opacity disabled:opacity-30"
           >
-            {isLoading ? "..." : "Send"}
+            {isLoading ? "..." : "送信"}
           </button>
         </div>
       </form>

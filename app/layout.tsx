@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Claude Agent",
-  description: "Browser-based AI coding agent",
+  description: "ブラウザで動くAIコーディングエージェント",
 };
 
 export default function RootLayout({

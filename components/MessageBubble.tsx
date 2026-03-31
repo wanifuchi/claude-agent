@@ -37,7 +37,7 @@ export default function MessageBubble({ message }: { message: Message }) {
             isUser ? "text-terminal-accent" : "text-terminal-green"
           }`}
         >
-          {isUser ? "You" : "Agent"}
+          {isUser ? "あなた" : "エージェント"}
         </div>
 
         {/* Tool calls */}

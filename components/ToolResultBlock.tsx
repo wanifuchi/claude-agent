@@ -43,20 +43,20 @@ export default function ToolResultBlock({
       </button>
       {expanded && (
         <div className="px-3 py-2 bg-terminal-bg text-xs border-t border-terminal-border">
-          <div className="text-terminal-muted mb-1">Input:</div>
+          <div className="text-terminal-muted mb-1">入力:</div>
           <pre className="text-terminal-blue whitespace-pre-wrap mb-2">
             {JSON.stringify(input, null, 2)}
           </pre>
           {output && (
             <>
-              <div className="text-terminal-muted mb-1">Output:</div>
+              <div className="text-terminal-muted mb-1">出力:</div>
               <pre
                 className={`whitespace-pre-wrap max-h-64 overflow-y-auto ${
                   isError ? "text-terminal-red" : "text-terminal-text"
                 }`}
               >
                 {output.length > 3000
-                  ? output.slice(0, 3000) + "\n... (truncated)"
+                  ? output.slice(0, 3000) + "\n... (省略)"
                   : output}
               </pre>
             </>
