@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-terminal-bg text-terminal-text;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-terminal-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-terminal-border rounded;
+  }
+}
+
+@layer components {
+  .message-content pre {
+    @apply bg-terminal-bg border border-terminal-border rounded-lg p-3 my-2 overflow-x-auto text-sm;
+  }
+  .message-content code {
+    @apply bg-terminal-bg px-1.5 py-0.5 rounded text-terminal-orange text-sm;
+  }
+  .message-content pre code {
+    @apply bg-transparent p-0 text-terminal-text;
+  }
+  .message-content p {
+    @apply my-1.5;
+  }
+  .message-content ul, .message-content ol {
+    @apply ml-5 my-1.5;
+  }
+  .message-content li {
+    @apply my-0.5;
+  }
+  .message-content h1, .message-content h2, .message-content h3 {
+    @apply font-bold mt-3 mb-1.5;
+  }
+  .message-content table {
+    @apply border-collapse border border-terminal-border my-2 text-sm;
+  }
+  .message-content th, .message-content td {
+    @apply border border-terminal-border px-3 py-1.5;
+  }
+  .message-content th {
+    @apply bg-terminal-surface;
+  }
+}
