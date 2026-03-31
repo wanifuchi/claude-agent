@@ -39,20 +39,36 @@ export async function POST(req: NextRequest) {
         while (turns < MAX_TURNS) {
           turns++;
 
-          const stream = client.messages.stream({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 16384,
-            system: systemPrompt,
-            tools: tools as Anthropic.Tool[],
-            messages: conversationMessages,
-          });
+          // リトライ付きAPI呼び出し（overloadedエラー対策）
+          let response: Anthropic.Message | null = null;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const stream = client.messages.stream({
+                model: "claude-sonnet-4-20250514",
+                max_tokens: 16384,
+                system: systemPrompt,
+                tools: tools as Anthropic.Tool[],
+                messages: conversationMessages,
+              });
 
-          // テキストをリアルタイムでストリーミング送信
-          stream.on("text", (text) => {
-            send("text", { text });
-          });
+              stream.on("text", (text) => {
+                send("text", { text });
+              });
 
-          const response = await stream.finalMessage();
+              response = await stream.finalMessage();
+              break;
+            } catch (retryErr: unknown) {
+              const msg = retryErr instanceof Error ? retryErr.message : String(retryErr);
+              if (msg.includes("overloaded") && attempt < 2) {
+                send("text", { text: "\n\n*サーバー混雑中...再試行します...*\n\n" });
+                await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
+                continue;
+              }
+              throw retryErr;
+            }
+          }
+
+          if (!response) throw new Error("リトライ上限に達しました");
 
           let hasToolUse = false;
           const toolResults: Anthropic.ToolResultBlockParam[] = [];
