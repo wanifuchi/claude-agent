@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import MessageBubble, { Message, ToolCall } from "@/components/MessageBubble";
+import ModelSelector from "@/components/ModelSelector";
 import Sidebar from "@/components/Sidebar";
 import {
   ChatSession,
@@ -18,6 +19,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [providerId, setProviderId] = useState("anthropic");
+  const [modelId, setModelId] = useState("claude-sonnet-4-20250514");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -147,7 +150,7 @@ export default function Home() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ messages: apiMessages, providerId, modelId }),
       });
 
       if (!response.ok) {
@@ -285,6 +288,12 @@ export default function Home() {
           <span className="text-xs text-terminal-muted flex-1">
             ブラウザで動くAIコーディングエージェント
           </span>
+          <ModelSelector
+            providerId={providerId}
+            modelId={modelId}
+            onChangeProvider={setProviderId}
+            onChangeModel={setModelId}
+          />
           <button
             onClick={() => {
               const a = document.createElement("a");

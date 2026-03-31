@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { getToolByName, getToolSchemas } from "@/lib/tools";
 import { buildSystemPrompt } from "@/lib/systemPrompt";
+import { getProvider } from "@/lib/providers";
+import type { ProviderMessage } from "@/lib/providers/types";
 
 const MAX_TURNS = 30;
 
@@ -10,16 +11,18 @@ function getWorkspaceDir(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { messages } = (await req.json()) as {
-    messages: Anthropic.MessageParam[];
+  const { messages, providerId, modelId } = (await req.json()) as {
+    messages: ProviderMessage[];
+    providerId?: string;
+    modelId?: string;
   };
 
   const workspaceDir = getWorkspaceDir();
-  const client = new Anthropic();
+  const provider = getProvider(providerId || "anthropic");
+  const model = modelId || "claude-sonnet-4-20250514";
   const systemPrompt = buildSystemPrompt(workspaceDir);
   const tools = getToolSchemas();
 
-  // Ensure workspace exists
   const { mkdir } = await import("fs/promises");
   await mkdir(workspaceDir, { recursive: true });
 
@@ -32,34 +35,28 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const conversationMessages = [...messages];
+      const conversationMessages: ProviderMessage[] = [...messages];
       let turns = 0;
 
       try {
         while (turns < MAX_TURNS) {
           turns++;
 
-          // リトライ付きAPI呼び出し（overloadedエラー対策）
-          let response: Anthropic.Message | null = null;
+          // リトライ付きAPI呼び出し
+          let response = null;
           for (let attempt = 0; attempt < 3; attempt++) {
             try {
-              const stream = client.messages.stream({
-                model: "claude-sonnet-4-20250514",
-                max_tokens: 16384,
-                system: systemPrompt,
-                tools: tools as Anthropic.Tool[],
-                messages: conversationMessages,
-              });
-
-              stream.on("text", (text) => {
-                send("text", { text });
-              });
-
-              response = await stream.finalMessage();
+              response = await provider.chat(
+                conversationMessages,
+                systemPrompt,
+                tools,
+                model,
+                { onText: (text) => send("text", { text }) }
+              );
               break;
             } catch (retryErr: unknown) {
               const msg = retryErr instanceof Error ? retryErr.message : String(retryErr);
-              if (msg.includes("overloaded") && attempt < 2) {
+              if ((msg.includes("overloaded") || msg.includes("529")) && attempt < 2) {
                 send("text", { text: "\n\n*サーバー混雑中...再試行します...*\n\n" });
                 await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
                 continue;
@@ -70,64 +67,38 @@ export async function POST(req: NextRequest) {
 
           if (!response) throw new Error("リトライ上限に達しました");
 
-          let hasToolUse = false;
-          const toolResults: Anthropic.ToolResultBlockParam[] = [];
+          // ツール実行
+          if (response.toolCalls.length > 0) {
+            const toolResultTexts: string[] = [];
 
-          for (const block of response.content) {
-            if (block.type === "tool_use") {
-              hasToolUse = true;
-              send("tool_use", {
-                name: block.name,
-                input: block.input,
-              });
+            for (const tc of response.toolCalls) {
+              send("tool_use", { name: tc.name, input: tc.input });
 
-              const tool = getToolByName(block.name);
+              const tool = getToolByName(tc.name);
               let resultContent: string;
               let isError = false;
 
               if (tool) {
-                const result = await tool.execute(
-                  block.input as Record<string, unknown>,
-                  workspaceDir
-                );
-                resultContent = result.isError
-                  ? `Error: ${result.error}`
-                  : result.output;
+                const result = await tool.execute(tc.input, workspaceDir);
+                resultContent = result.isError ? `Error: ${result.error}` : result.output;
                 isError = !!result.isError;
-
-                send("tool_result", {
-                  name: block.name,
-                  output: resultContent,
-                  isError,
-                });
               } else {
-                resultContent = `Error: Unknown tool "${block.name}"`;
+                resultContent = `Error: Unknown tool "${tc.name}"`;
                 isError = true;
-                send("tool_result", {
-                  name: block.name,
-                  output: resultContent,
-                  isError: true,
-                });
               }
 
-              toolResults.push({
-                type: "tool_result",
-                tool_use_id: block.id,
-                content: resultContent,
-                is_error: isError,
-              });
+              send("tool_result", { name: tc.name, output: resultContent, isError });
+              toolResultTexts.push(`[${tc.name}]: ${resultContent}`);
             }
-          }
 
-          conversationMessages.push({
-            role: "assistant",
-            content: response.content,
-          });
-
-          if (hasToolUse && toolResults.length > 0) {
+            // 会話にアシスタントのテキスト+ツール結果を追加して続行
+            conversationMessages.push({
+              role: "assistant",
+              content: response.textContent || "ツールを実行します。",
+            });
             conversationMessages.push({
               role: "user",
-              content: toolResults,
+              content: `ツール実行結果:\n${toolResultTexts.join("\n\n")}`,
             });
             continue;
           }
