@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import LoginScreen from "@/components/LoginScreen";
 import MessageBubble, { Message, ToolCall } from "@/components/MessageBubble";
 import ModelSelector from "@/components/ModelSelector";
 import Sidebar from "@/components/Sidebar";
@@ -13,6 +14,8 @@ import {
 } from "@/lib/chatHistory";
 
 export default function Home() {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,8 +27,20 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // 認証チェック
+  useEffect(() => {
+    fetch("/api/auth")
+      .then((r) => r.json())
+      .then((data) => {
+        setAuthenticated(data.authenticated || data.noAuth);
+        setAuthChecked(true);
+      })
+      .catch(() => setAuthChecked(true));
+  }, []);
+
   // 初回ロード
   useEffect(() => {
+    if (!authenticated) return;
     const loaded = loadSessions();
     setSessions(loaded);
     if (loaded.length > 0) {
@@ -33,7 +48,7 @@ export default function Home() {
       setActiveSessionId(latest.id);
       setMessages(latest.messages as Message[]);
     }
-  }, []);
+  }, [authenticated]);
 
   // セッション保存
   useEffect(() => {
@@ -262,6 +277,18 @@ export default function Home() {
       e.preventDefault();
       handleSubmit();
     }
+  }
+
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-terminal-bg">
+        <div className="text-terminal-muted text-sm">読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <LoginScreen onSuccess={() => setAuthenticated(true)} />;
   }
 
   return (
